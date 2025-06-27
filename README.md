@@ -87,12 +87,4 @@ PATCH /users/:email
 ```bash
 DELETE /users/:email
 ```
-```bash
-{
-    "name": "admin",
-    "email": "admin@spsgroup.com.br",
-    "type": "admin",
-    "password": "1234"
-}
-```
 > Deleta um usuário buscando pelo e-mail.
