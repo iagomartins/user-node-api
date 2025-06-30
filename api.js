@@ -1,10 +1,16 @@
 import express from "express";
+import cors from "cors";
 import jwt from "jsonwebtoken";
 
 const app = express();
 const SECRET_KEY = "2516aadd29f56b14757b658f077dfecb";
 
 app.use(express.json());
+app.use(
+  cors({
+    origin: "*",
+  })
+);
 
 app.get("/", (req, res) => {
   res.send("Olá, esta é a rota padrão da API.");
@@ -33,13 +39,13 @@ app.post("/login", async (req, res) => {
     return res.status(401).json({ message: "Credenciais inválidas." });
   }
 
-  const isPasswordValid = password === user.password && user.type === "admin";
+  const isPasswordValid = password === user.password;
   if (!isPasswordValid) {
     return res.status(401).json({ message: "Credenciais inválidas." });
   }
 
   const token = jwt.sign({ username }, SECRET_KEY, { expiresIn: "1h" });
-  return res.json({ token });
+  return res.json({ token, user });
 });
 
 app.get("/users/:email", (req, res) => {
@@ -106,7 +112,9 @@ app.post("/users", (req, res) => {
       users.push(user);
       return res.json({ message: "Usuário criado!", users });
     } else {
-      return res.status(403).json({ message: "E-mail de usuário já existente." });
+      return res
+        .status(403)
+        .json({ message: "E-mail de usuário já existente." });
     }
   } catch (err) {
     return res.status(401).json({ message: "Token inválido ou expirado." });
@@ -161,10 +169,16 @@ app.delete("/users/:email", (req, res) => {
     const { email } = req.params;
 
     let deleteIndex = 0;
-    const deleteUser = users.find((deleteUser, i) => { deleteIndex = i; return deleteUser.email === email; });
+    const deleteUser = users.find((deleteUser, i) => {
+      deleteIndex = i;
+      return deleteUser.email === email;
+    });
 
     if (!deleteUser) return res.status(404).json("Usuário não existe!");
-    
+
+    if (deleteUser.email === "admin@spsgroup.com.br")
+      return res.status(403).json("Usuário admin não pode ser excluído!");
+
     users.splice(deleteIndex, 1);
 
     return res.json("Deletado com sucesso!");
